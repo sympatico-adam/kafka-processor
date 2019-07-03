@@ -1,0 +1,42 @@
+FROM centos:8
+
+# Maintainer information
+LABEL author="Adam Baldwin <adam@dec1pher.com>"
+
+# Meta data about the docker image
+LABEL project="kafka"
+LABEL name="kafka"
+LABEL description="Kafka dev server."
+
+ENV KAFKA_VERSION 2.3.0
+ENV SCALA_VERSION 2.12
+ENV KAFKA_HEAP_OPTS="-Xmx1G -Xms1G"
+ENV PATH $PATH:/usr/local/kafka/bin
+
+RUN yum install epel-release -y && \
+    yum clean all && yum update -y && \
+    yum --enablerepo=epel install -y \
+    wget \
+    bind-utils \
+    less \
+    vim \
+    java-11-openjdk
+    
+# Install kafka 
+RUN wget -q http://apache.cs.utah.edu/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz \
+    -O /tmp/kafka_${SCALA_VERSION}-"$KAFKA_VERSION".tgz && \
+    tar xfz /tmp/kafka_${SCALA_VERSION}-"$KAFKA_VERSION".tgz -C /usr/local && \
+    rm /tmp/kafka_${SCALA_VERSION}-"$KAFKA_VERSION".tgz && \
+        ln -s /usr/local/kafka_${SCALA_VERSION}-"$KAFKA_VERSION" /usr/local/kafka && \
+    mkdir -p /etc/kafka
+
+COPY container/server.properties /usr/local/kafka/config/server.properties
+COPY container/docker-entrypoint.sh container/create-topic /usr/local/bin/
+RUN chmod 755 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/create-topic
+
+ENTRYPOINT ["docker-entrypoint.sh"]
+
+WORKDIR /usr/local/kafka
+
+## run kafka by default, 'run zookeeper' to start zookeeper instead
+CMD ["/usr/local/bin/create-topic", "test"]

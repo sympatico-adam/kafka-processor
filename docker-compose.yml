@@ -1,0 +1,52 @@
+version: '3.7'
+
+services:
+  kafka-dev:
+    image: sympatico/kafka-dev
+    container_name: kafka-dev
+    hostname: kafka-dev
+    depends_on:
+      - zk-dev
+    build:
+      context: .
+      dockerfile: ./Dockerfile.kafka
+    environment:
+      BROKER_ID: 0
+      PLAINTEXT_PORT: 9092
+      SSL_PORT: 9192
+      SASL_SSL_PORT: 9292
+      ZK_HOST: zk-dev
+      HOST_ROLE: kafka
+    ports:
+      - "9092:9092"
+    tty: true
+    networks:
+      kafka-net:
+        aliases:
+          - kafka-dev
+
+  zk-dev:
+    image: sympatico/zk-dev
+    container_name: zk-dev
+    hostname: zk-dev
+    build:
+      context: .
+      dockerfile: ./Dockerfile.zk
+    restart: always
+    ports:
+      - 2181:2181
+    environment:
+      HOST_ROLE: zookeeper
+      ZOO_MY_ID: 1
+    tty: true
+    networks:
+      kafka-net:
+        aliases:
+          - zk-dev
+
+networks:
+  kafka-net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.69.0/24
