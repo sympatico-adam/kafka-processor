@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  kafka-dev:
+    container_name: kafka-dev
+    image: ab/kafka-zookeeper
+    build:
+      context: .
+      dockerfile: ./Dockerfile.kafka
+    environment:
+      BROKER_ID: 0
+      PLAINTEXT_PORT: 9092
+      SSL_PORT: 9192
+      SASL_SSL_PORT: 9292
+      ZK_HOST: zk-dev
+      HOST_ROLE: kafka
+    ports:
+      - "9092:9092"
+  zk-dev:
+    container_name: zk-dev
+    image: ab/kafka-zookeeper
+    build:
+      context: .
+      dockerfile: ./Dockerfile.kafka
+    environment:
+      HOST_ROLE: zookeeper
+    ports:
+      - "2181:2181"
+  worker:
+    container_name: worker
+    image: ab/worker
+    build:
+      context: .
+      dockerfile: ./Dockerfile.worker
