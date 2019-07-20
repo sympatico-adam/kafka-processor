@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
   kafka-dev:
@@ -16,6 +16,7 @@ services:
       HOST_ROLE: kafka
     ports:
       - "9092:9092"
+    tty: true
   zk-dev:
     container_name: zk-dev
     image: ab/kafka-zookeeper
@@ -26,9 +27,24 @@ services:
       HOST_ROLE: zookeeper
     ports:
       - "2181:2181"
-  worker:
-    container_name: worker
-    image: ab/worker
-    build:
-      context: .
-      dockerfile: ./Dockerfile.worker
+    tty: true
+  redis-dev:
+    container_name: redis-dev
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - type: bind
+        source: /home/underride/IdeaProjects/csv-transform-parser/bin/data
+        target: /test-data
+    command: redis-server --appendonly yes
+    tty: true
+  mysql-dev:
+    container_name: mysql-dev
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: "The mysql password."
+    ports:
+      - "3306:3306"
+      - "33060:33060"
+    tty: true
