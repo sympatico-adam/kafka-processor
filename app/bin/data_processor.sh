@@ -24,7 +24,7 @@ app_name=data-processor
 
 options="-Djava.util.logging.config.file=logging.properties -Djava.net.preferIPv4Stack=true -Xmx1g"
 
-main_class=org.guild.dataprocessor.FilmProcessor
+main_class=org.ab.kafka.processor.FilmProcessor
 
 lib_jars=; for i in ${lib_dir}/*.jar; do lib_jars=$lib_jars:$i; done;
 lib_dep_jars=; for i in ${lib_dir}/dependencies/*.jar; do lib_dep_jars=$lib_dep_jars:$i; done;

@@ -22,7 +22,7 @@ fi
 echo "Starting Kafka server..."
 prop_file="/usr/local/kafka/config/server.properties"
 
-#/usr/local/bin/create_topics.sh 2>&1 &
+/usr/local/bin/create_topics.sh
 
 KAFKA_HEAP_OPTS="-Xmx1G -Xms1G" /usr/local/kafka/bin/kafka-server-start.sh $prop_file
 
