@@ -4,9 +4,9 @@ FROM zookeeper:3.5
 LABEL author="Adam Baldwin <adam@dec1pher.com>"
 
 # Meta data about the docker image
-LABEL project="kafka"
-LABEL name="kafka"
-LABEL description="Kafka dev server."
+LABEL project="zookeeper"
+LABEL name="zookeeper"
+LABEL description="zookeeper dev server."
 
 COPY container/zoo.cfg /conf/
 
