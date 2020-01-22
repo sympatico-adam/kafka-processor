@@ -1,9 +1,8 @@
-package org.ab.kafka.processor.consumer;
+package org.sympatico.kafka.processor.consumer;
 
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.Metric;
 import org.apache.kafka.common.errors.WakeupException;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -12,24 +11,21 @@ import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
-public class ConsumerHandlerRunnable implements Runnable {
+public class ConsumerRunnable implements Runnable {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConsumerHandlerRunnable.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConsumerRunnable.class);
     private static final AtomicBoolean shutdown = new AtomicBoolean(false);
 
     private final ConcurrentLinkedQueue<JSONObject> consumerQueue;
     private final SimpleKafkaConsumer kafkaConsumer;
 
-    public ConsumerHandlerRunnable(Properties config, String topic, ConcurrentLinkedQueue<JSONObject> queue) {
-        LOG.info("Creating new Kafka consumer for topic " + topic + "...");
+    public ConsumerRunnable(Properties config, ConcurrentLinkedQueue<JSONObject> queue) {
         consumerQueue = queue;
-        kafkaConsumer = new SimpleKafkaConsumer(config, topic);
+        kafkaConsumer = new SimpleKafkaConsumer(config);
     }
 
     @Override
@@ -38,31 +34,26 @@ public class ConsumerHandlerRunnable implements Runnable {
         try (consumer) {
             LOG.info("Consumer begin consuming from topic [" + consumer.listTopics() + "]");
             while (!shutdown.get()) {
-                ConsumerRecords<Long, byte[]> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
-                for (final ConsumerRecord<Long, byte[]> record : records) {
-                    try {
+                try {
+                    ConsumerRecords<Long, byte[]> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
+                    for (final ConsumerRecord<Long, byte[]> record : records) {
                         byte[] bytes = record.value();
                         consumerQueue.add(new JSONObject(new String(bytes, StandardCharsets.UTF_8)));
-                    } catch (JSONException e) {
-                        LOG.error("Could not parse json object: " + record.key() + ", " +
-                                new String(record.value(), StandardCharsets.UTF_8) + ", " + record.partition() + ", " +
-                                record.partition() + ")\n," + record.offset() + "\n\n" + e);
-                        e.printStackTrace();
                     }
+                } catch (NullPointerException NPException) {
+                    Thread.sleep(1000L);
                 }
                 consumer.commitSync();
             }
         } catch (
-                WakeupException e) {
-            // Ignore exception if closing
-            if (!shutdown.get()) throw e;
-        } finally {
-            consumer.close();
+            WakeupException | InterruptedException | JSONException e) {
+            e.printStackTrace();
         }
     }
 
     public void shutdown() {
         shutdown.set(true);
         kafkaConsumer.getConsumer().wakeup();
+        kafkaConsumer.getConsumer().close();
     }
 }

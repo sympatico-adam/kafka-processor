@@ -1,0 +1,6 @@
+#!/bin/bash
+topic=${1}
+echo "Creating kafka topic ${topic}..."
+/usr/local/kafka/bin/kafka-topics.sh --zookeeper zk-dev:2181 --create --topic ${topic} \
+   --partitions 16  --replication-factor 1 --config compression.type=lz4 --config min.insync.replicas=1
+echo "Done!"

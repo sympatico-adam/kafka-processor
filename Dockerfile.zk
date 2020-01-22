@@ -1,0 +1,13 @@
+FROM zookeeper:3.5
+
+# Maintainer information
+LABEL author="Adam Baldwin <adam@dec1pher.com>"
+
+# Meta data about the docker image
+LABEL project="kafka"
+LABEL name="kafka"
+LABEL description="Kafka dev server."
+
+COPY container/zoo.cfg /conf/
+
+EXPOSE 2181 2888 3888 8080

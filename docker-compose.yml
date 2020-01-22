@@ -2,8 +2,9 @@ version: '3.7'
 
 services:
   kafka-dev:
+    image: sympatico/kafka-dev
     container_name: kafka-dev
-    image: ab/kafka-zookeeper
+    hostname: kafka-dev
     build:
       context: .
       dockerfile: ./Dockerfile.kafka
@@ -17,34 +18,31 @@ services:
     ports:
       - "9092:9092"
     tty: true
+    networks:
+      kafka-net:
+        aliases:
+          - zk-dev
+
   zk-dev:
+    image: sympatico/zk-dev
     container_name: zk-dev
-    image: ab/kafka-zookeeper
+    hostname: zk-dev
     build:
       context: .
-      dockerfile: ./Dockerfile.kafka
+      dockerfile: ./Dockerfile.zk
+    restart: always
+    ports:
+      - 2181:2181
     environment:
       HOST_ROLE: zookeeper
-    ports:
-      - "2181:2181"
+      ZOO_MY_ID: 1
     tty: true
-  redis-dev:
-    container_name: redis-dev
-    image: redis:latest
-    ports:
-      - "6379:6379"
-    volumes:
-      - type: bind
-        source: /home/underride/IdeaProjects/csv-transform-parser/bin/data
-        target: /test-data
-    command: redis-server --appendonly yes
-    tty: true
-  mysql-dev:
-    container_name: mysql-dev
-    image: mysql:latest
-    environment:
-      MYSQL_ROOT_PASSWORD: "The mysql password."
-    ports:
-      - "3306:3306"
-      - "33060:33060"
-    tty: true
+    networks:
+      kafka-net:
+        aliases:
+          - zk-dev
+
+networks:
+  kafka-net:
+    driver: bridge
+    name: kafka-net
