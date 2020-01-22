@@ -23,7 +23,7 @@ public class SimpleKafkaProducer {
             if (Pattern.matches("^producer.[-_a-z.]+", kafkaProperty)) {
                 String key = kafkaProperty.replace("producer.", "");
                 LOG.info("Found matching config: " + key);
-                kafkaConfig.put(key, config.getProperty(kafkaProperty, ""));
+                kafkaConfig.put(key, config.getProperty(kafkaProperty));
             }
         }
         createProducer(kafkaConfig);

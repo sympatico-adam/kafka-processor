@@ -69,7 +69,7 @@ A topic named _test_ will be automatically generated in the new cluster.
 
 New topics can be created with the following:
 ```bash
-docker exec kafka-dev create_topic [topic_name]
+docker exec kafka-dev create-topic [topic_name]
 ``` 
 
 Data can be sent to the desired topic with the following:

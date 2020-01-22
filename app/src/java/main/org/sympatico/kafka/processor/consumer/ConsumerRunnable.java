@@ -9,7 +9,6 @@ import org.codehaus.jettison.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,12 +19,13 @@ public class ConsumerRunnable implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(ConsumerRunnable.class);
     private static final AtomicBoolean shutdown = new AtomicBoolean(false);
 
-    private final ConcurrentLinkedQueue<JSONObject> consumerQueue;
+    private final ConcurrentLinkedQueue<byte[]> consumerQueue;
     private final SimpleKafkaConsumer kafkaConsumer;
 
-    public ConsumerRunnable(Properties config, ConcurrentLinkedQueue<JSONObject> queue) {
+    public ConsumerRunnable(Properties config, String topic, ConcurrentLinkedQueue<byte[]> queue) {
+        LOG.info("Creating new Kafka consumer for topic " + topic + "...");
         consumerQueue = queue;
-        kafkaConsumer = new SimpleKafkaConsumer(config);
+        kafkaConsumer = new SimpleKafkaConsumer(config, topic);
     }
 
     @Override
@@ -38,16 +38,17 @@ public class ConsumerRunnable implements Runnable {
                     ConsumerRecords<Long, byte[]> records = consumer.poll(Duration.ofMillis(Long.MAX_VALUE));
                     for (final ConsumerRecord<Long, byte[]> record : records) {
                         byte[] bytes = record.value();
-                        consumerQueue.add(new JSONObject(new String(bytes, StandardCharsets.UTF_8)));
+                        consumerQueue.offer(bytes);
                     }
                 } catch (NullPointerException NPException) {
+                    LOG.info("Consumer poll returned null...\n" + NPException.getMessage());
                     Thread.sleep(1000L);
                 }
                 consumer.commitSync();
             }
-        } catch (
-            WakeupException | InterruptedException | JSONException e) {
-            e.printStackTrace();
+        } catch (WakeupException | InterruptedException e) {
+            LOG.info("Consumer shutting down...");
+            shutdown();
         }
     }
 

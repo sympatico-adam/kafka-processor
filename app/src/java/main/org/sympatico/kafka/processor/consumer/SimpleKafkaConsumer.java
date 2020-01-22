@@ -1,5 +1,6 @@
 package org.sympatico.kafka.processor.consumer;
 
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
@@ -7,19 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SimpleKafkaConsumer {
 
     private static final Logger LOG = LoggerFactory.getLogger(SimpleKafkaConsumer.class);
 
-    public final String topic;
     private KafkaConsumer<Long, byte[]> consumer;
 
-    public SimpleKafkaConsumer(Properties config) {
+    public SimpleKafkaConsumer(Properties config, String topic) {
         final Properties kafkaConfig = new Properties();
         try {
-            topic = config.getProperty("consumer.topic");
+            LOG.info("Constructing new Kafka consumer: " + topic);
             for (Map.Entry<Object, Object> entry: config.entrySet()) {
                 String kafkaProperty = String.valueOf(entry.getKey());
                 if (Pattern.matches("^consumer.[-_a-z.]+", kafkaProperty)) {
@@ -28,7 +29,7 @@ public class SimpleKafkaConsumer {
                     kafkaConfig.put(key, config.getProperty(kafkaProperty));
                 }
             }
-        } catch (NumberFormatException|NullPointerException e) {
+        } catch (NumberFormatException e) {
             LOG.error("Unable to read properties file!");
             throw e;
         }
@@ -40,10 +41,10 @@ public class SimpleKafkaConsumer {
     }
 
     private void createConsumer(Properties kafkaConfig) {
-        final int startingOffset = Integer.parseInt(kafkaConfig.getProperty("starting.offset", "-2"));
+        final int startingOffset = Integer.parseInt(kafkaConfig.getProperty("consumer.starting.offset", "-2"));
         consumer = new KafkaConsumer<>(kafkaConfig);
         // Subscribe to the topic.
-        consumer.subscribe(Collections.singleton(topic),
+        consumer.subscribe(Collections.singleton(kafkaConfig.getProperty("topic")),
                 new ConsumerRebalanceListener() {
             public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
                 LOG.debug(Arrays.toString(partitions.toArray()) + "topic-partitions are revoked from this consumer\n");
@@ -52,8 +53,7 @@ public class SimpleKafkaConsumer {
             public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
                 LOG.debug(Arrays.toString(partitions.toArray()) + " topic-partitions are assigned to this consumer\n");
                 for (TopicPartition topicPartition : partitions) {
-                    LOG.debug("Current offset is " + consumer.position(topicPartition) + " committed offset is ->" +
-                            consumer.committed(topicPartition));
+                    LOG.debug("Current offset is " + consumer.position(topicPartition) + " committed offset is ->" + consumer.committed(topicPartition));
                     if (startingOffset == -2) {
                         LOG.debug("Leaving it alone");
                     } else if (startingOffset == 0) {

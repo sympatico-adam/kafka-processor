@@ -32,9 +32,11 @@ RUN wget -q http://apache.cs.utah.edu/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSI
 
 COPY container/server.properties /usr/local/kafka/config/server.properties
 COPY container/docker-entrypoint.sh container/create-topic /usr/local/bin/
-RUN chmod 755 /usr/local/bin/*.sh
+RUN chmod 755 /usr/local/bin/docker-entrypoint.sh /usr/local/bin/create-topic
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+WORKDIR /usr/local/kafka
+
 ## run kafka by default, 'run zookeeper' to start zookeeper instead
-CMD ["create_topic", "test"]
+CMD ["/usr/local/bin/create-topic", "test"]

@@ -50,6 +50,9 @@ public class SimpleKafkaProducerTest {
                 queue.add(new ImmutablePair<>(TOPIC,
                         new JSONObject().put("id", splitLine[1]).put("rating", splitLine[2]).toString().getBytes(StandardCharsets.UTF_8)));
             }
+            while (!queue.isEmpty()) {
+                Thread.sleep(1000L);
+            }
         } finally {
             for (ProducerRunnable producer: producers) {
                 producer.shutdown();

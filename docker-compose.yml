@@ -5,6 +5,8 @@ services:
     image: sympatico/kafka-dev
     container_name: kafka-dev
     hostname: kafka-dev
+    depends_on:
+      - zk-dev
     build:
       context: .
       dockerfile: ./Dockerfile.kafka
@@ -21,7 +23,7 @@ services:
     networks:
       kafka-net:
         aliases:
-          - zk-dev
+          - kafka-dev
 
   zk-dev:
     image: sympatico/zk-dev
@@ -44,5 +46,7 @@ services:
 
 networks:
   kafka-net:
-    driver: bridge
-    name: kafka-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.69.0/24
