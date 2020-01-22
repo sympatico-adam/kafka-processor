@@ -13,7 +13,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
-    <argLine>-Xss1024M -Xms2048M</argLine>
+    <argLine>-Xms512M</argLine>
   </properties>
 
   <dependencies>
@@ -71,7 +71,7 @@
 
   <build>
     <finalName>${project.artifactId}-${project.version}</finalName>
-    <sourceDirectory>src/java/main</sourceDirectory>
+    <sourceDirectory>src/main/java</sourceDirectory>
     <resources>
       <resource>
         <directory>resources</directory>

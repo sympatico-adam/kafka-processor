@@ -7,9 +7,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sympatico.kafka.processor.consumer.SimpleKafkaConsumer;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
@@ -27,9 +29,11 @@ public class SimpleKafkaProducerTest {
 
     @Before
     public void setUp() throws Exception {
-        File file = new File("app/src/java/test/resources/processor.test.properties");
-        LOG.info("Config: " + file.getAbsolutePath());
-        config.load(new FileInputStream(file));
+        config.load(Objects.requireNonNull(
+                SimpleKafkaConsumer.class
+                        .getClassLoader()
+                        .getResourceAsStream("processor.test.properties")
+        ));
         int poolSize = Integer.parseInt(config.getProperty("producer.thread.pool.size"));
         producers = new ProducerRunnable[poolSize];
         for (int i = 0; i < poolSize; i++) {
@@ -40,8 +44,7 @@ public class SimpleKafkaProducerTest {
 
     @Test
     public void producerTest() throws Exception {
-        FileInputStream fstream = new FileInputStream(new File("app/src/java/test/resources/sample.csv"));
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(fstream))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(SimpleKafkaProducerTest.class.getResourceAsStream("sample.csv")))) {
             String line;
             br.readLine(); // header
             while ((line = br.readLine()) != null) {

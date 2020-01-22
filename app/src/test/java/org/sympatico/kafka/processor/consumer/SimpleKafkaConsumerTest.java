@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
@@ -29,10 +30,11 @@ public class SimpleKafkaConsumerTest {
 
     @Before
     public void setup() throws IOException {
-        File file = new File("app/src/java/test/resources/processor.test.properties");
-        LOG.info("Config: " + file.getAbsolutePath());
-        config.load(new FileInputStream(file));
-
+        config.load(Objects.requireNonNull(
+                SimpleKafkaConsumer.class
+                        .getClassLoader()
+                        .getResourceAsStream("processor.test.properties")
+        ));
     }
 
     @Test
