@@ -40,8 +40,7 @@ public class SimpleKafkaProducerTest {
 
     @Test
     public void producerTest() throws Exception {
-        FileInputStream fstream = new FileInputStream(new File("app/src/java/test/resources/sample.csv"));
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(fstream))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(SimpleKafkaProducerTest.class.getResourceAsStream("sample.csv")))) {
             String line;
             br.readLine(); // header
             while ((line = br.readLine()) != null) {
